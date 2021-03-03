@@ -1,92 +1,106 @@
-import PIL.Image
-import PIL.ImageTk
+from tkinter import messagebox
+
 import cv2
 import numpy as np
 import glob
+import pathlib
+import tkinter as tk
+from PIL import Image, ImageTk
 import os
 
-import tkinter as tk
 
-global imagePath
+class ImagePaths:
+    def __init__(self, path=os.getcwd() + "\\coins", imageType="jpg"):
+        self.imagePaths = glob.glob(os.path.join(path, '*.' + imageType))  # searching for all .jpg files
+
+        print(self.imagePaths)
+        print(os.getcwd())
+
+    def fillListBox(self, listBoxObject):
+        for imagePath in self.imagePaths:
+            imageName = imagePath.split("\\")[-1]  # splitting all the .pdf up
+            listBoxObject.insert('end', imageName)  # inserting each word into tk listbox
+
+    def getPath(self, listBoxIndex):
+        return self.imagePaths[listBoxIndex]
 
 
-def selectImage(imageObject):
-    newImagePath = filedialog.askopenfilename(initialdir="/", title="Select file",
-                                              filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
-    imageObject.setImage(newImagePath)
+class ImageClass:
+
+    def __init__(self, frame, image, colorType="rgb"):
+        self.imageLabel = tk.Label(frame, image=imgtk, compound="top")
+        self.imageLabel.pack(side="right")
+        self.image = image
+        self.colorType = colorType
+
+    def setColorType(self, type="none"):
+        if type != "none":
+            self.colorType == type
+        else:
+            if self.colorType == "rgb":
+                self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+
+            if self.colorType == "gray":
+                self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+
+    def setImage(self, imagePath):
+        self.image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+
+        self.setColorType()
+
+        print(imagePath)
+
+        im = Image.fromarray(self.image)
+        imgtk = ImageTk.PhotoImage(image=im)
+
+        self.imageLabel['image'] = imgtk
+        self.imageLabel.photo = imgtk
+
+    def getCurrentImage(self):
+        # TODO: returns the current image
+        print("todo")
 
 
 def callbackFileSelection(event):
-    global imagePath
+    selection = event.widget.curselection()
 
-    if len(filePaths) == 0:
-        messagebox.showinfo(title="Result", message="Please select a folder containing .pdf files.")
+    originalImage.setImage(lbImagePaths.getPath(selection[0]))
+    grayImage.setImage(lbImagePaths.getPath(selection[0]))
 
-    else:
-
-        selection = event.widget.curselection()
-        print(selection)
-        imagePath = filePaths[selection[0]]
-
-
-class MouseCoordinate:
-    position = []
-
-    def __init__(self):
-        self.position = []
-
-    def select_point(self, event, x, y, flags, param):  # int event, int x, int y, ...
-        if len(self.position) > 2:
-            self.position = []
-            print("No selection. Please select a point on the image.")
-
-        # if event == cv2.EVENT_LBUTTONDBLCLK:  # left mouse button DOUBLE click in this case
-        if event == cv2.EVENT_LBUTTONDOWN:  # single click
-            self.position.append([x, y])
-
-    def getPointOne(self):
-        return self.position[0]
-
-    def getPointTwo(self):
-        return self.position[1]
+def countCoins():
+    print("hello")
 
 
 if __name__ == '__main__':
-    image = cv2.imread('paint.jpg', cv2.IMREAD_COLOR)
-
-    imageGrey = cv2.imread('paint.jpg', cv2.IMREAD_GRAYSCALE)
-
     master = tk.Tk()  # creating a tk application+
 
-    master.title('Banane')  # title of the program window
+    master.title('countingCoins')  # title of the program window
 
     master.geometry("")  # defining the window size
 
-    height, width, depth = image.shape
+    rightFrame = tk.Frame(master)
+    rightFrame.pack(side='right', fill=tk.BOTH, expand=True)
 
-    canvas = tk.Canvas(master, width=width, height=height)  # getting dimensions for tkinter canvas from opencv image
-    canvas.pack(side="right", padx=10, pady=10, ipady=6)
+    image = cv2.imread('.\\coins\\coinb_05.JPG', cv2.IMREAD_COLOR)
 
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # converting BGR into RGB
+    imgtk = ImageTk.PhotoImage(image=Image.fromarray(image))
 
-    photo = PIL.ImageTk.PhotoImage(
-        image=PIL.Image.fromarray(imageGrey))  # converting opencv numpy array into photoimage (takes RGB)
-    canvas.create_image(0, 0, image=photo, anchor=tk.NW)
+    originalImage = ImageClass(rightFrame, imgtk)
+    grayImage = ImageClass(rightFrame, imgtk, "gray")
+
+
 
     lbFileSelection = tk.Listbox(master, width=30)  # creating a listbox
     lbFileSelection.bind("<<ListboxSelect>>",
                          callbackFileSelection)  # callback function for listbox ... executes when you select an entry
-    lbFileSelection.pack(side="top", fill=tk.BOTH, expand=True, padx=10, pady=10, ipady=6)  # outer padding for the listbox/listview
+    lbFileSelection.pack(side="top", fill=tk.BOTH, expand=True, padx=10, pady=10,
+                         ipady=6)  # outer padding for the listbox/listview
 
-    allImagePaths = glob.glob('*/*.jpg',
-                              recursive=True)  # searching for all .jpg files recursively, returns an array of files with their absoulte paths
+    lbImagePaths = ImagePaths()
+    lbImagePaths.fillListBox(lbFileSelection)
 
-    for imagePath in allImagePaths:
-        imageName = imagePath.split("\\")[-1]  # splitting all the .pdf up
-        lbFileSelection.insert('end', imageName)  # inserting each word into tk listbox
-
-    selectImageButton = tk.Button(master, text='Select New Image', width=15, height=2, command=selectImage)
-    selectImageButton.pack(side="bottom", padx=10, pady=10)
+    countCoins = tk.Button(master, text='count', width=15, height=2, command=countCoins)
+    countCoins.pack(side="bottom", padx=10, pady=10)
 
     master.mainloop()  # window mainloop
 
