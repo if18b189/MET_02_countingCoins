@@ -1,5 +1,5 @@
 """
-useful links:
+useful links and sources:
 
     https://java2blog.com/cv2-imread-python/#cv2imread_Method_example # good source to look up basic cv2 functionalities
 
@@ -27,6 +27,7 @@ class ImagePaths:
     """
     Finds all images and summarizes their paths.
     """
+
     def __init__(self, path=os.getcwd() + "\\coins", imageType="jpg"):
         """
         Constructor
@@ -50,6 +51,7 @@ class ImagePaths:
         """
         return self.imagePaths[listBoxIndex]
 
+
 class ImageClass:
 
     def __init__(self, frame, imageArray, colorType="rgb", title=""):
@@ -63,7 +65,7 @@ class ImageClass:
         self.imageArray = imageArray
         self.colorType = colorType
 
-        self.newSize = (300, 200)   # default size for all images displayed in the program
+        self.newSize = (300, 200)  # default size for all images displayed in the program
         resized = cv2.resize(self.imageArray, self.newSize)
         self.image = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
@@ -116,20 +118,59 @@ class ImageClass:
 
         self.updateImage(thresh1)
 
-        # resized = cv2.resize(thresh1, self.newSize)  # takes image array and resizes it, returns new image array
-        # imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))
-        #
-        # self.image = imgtk
-        #
-        # self.imageLabel['image'] = imgtk  # updating the label to show the new image
-        # self.imageLabel.photo = imgtk
-
     def erode(self):
         """
         Morphological erode function.
         """
-        print("placeholder")
-        # imageErosion = cv2.erode(self.imageArray)
+        # print("placeholder")
+
+        kernel = np.array([[0, -1, 0],
+                           [-1, 4, -1],
+                           [0, -1, 0]], np.uint8)  # laplacian operator/mask
+
+        imageErosion = cv2.erode(self.imageArray, kernel, iterations=1)
+
+        """
+        morphological transformations
+        source: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
+                http://datahacker.rs/006-morphological-transformations-with-opencv-in-python/
+                
+        additional information about convolution filters:
+        https://www.l3harrisgeospatial.com/docs/ConvolutionMorphologyFilters.html
+
+        opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+        # shorter example for opening ( erosion followed by dilitation)
+        # useful in removing noise
+
+        closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+        # shorter example for closing ( erosion followed by dilitation)
+        # useful in closing small holes inside the foreground objects
+
+        # Rectangular Kernel
+        >> > cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+        array([[1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 1]], dtype=uint8)
+
+        # Elliptical Kernel
+        >> > cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        array([[0, 0, 1, 0, 0],
+               [1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 1],
+               [0, 0, 1, 0, 0]], dtype=uint8)
+
+        # Cross-shaped Kernel
+        >> > cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5))
+        array([[0, 0, 1, 0, 0],
+               [0, 0, 1, 0, 0],
+               [1, 1, 1, 1, 1],
+               [0, 0, 1, 0, 0],
+               [0, 0, 1, 0, 0]], dtype=uint8)
+               
+        """
 
     def updateImage(self, imageArray):
         """
@@ -197,9 +238,10 @@ class ImagePlot:
 
 def thresholdSliderCallback(var):
     """
-    Applies the value from the threshold slider.
+    Applies the value from the threshold slider on following image objects.
     """
     binaryImage.threshold(int(var))
+    erodeImage.threshold(int(var))
 
 
 def callbackFileSelection(event):
@@ -207,6 +249,8 @@ def callbackFileSelection(event):
     Gets called everytime an image is selected from the listbox
     Changes images according to selection.
     Applies additional functions depending on what kind of operation you want to show.
+
+    Note: inefficiency, creating new objects for each image, not inheriting operations from precious image
     """
     selection = event.widget.curselection()
     selectedImagePath = lbImagePaths.getPath(selection[0])
@@ -225,7 +269,9 @@ def callbackFileSelection(event):
     binaryImage.threshold(int(thresholdSlider.get()))
 
     # updating grayImage3
-    grayImage3.setImage(selectedImagePath)
+    erodeImage.setImage(selectedImagePath)
+    erodeImage.threshold(int(thresholdSlider.get()))
+    erodeImage.erode()
 
 
 def openPlot():
@@ -264,7 +310,7 @@ if __name__ == '__main__':
     originalImage = ImageClass(rightTopFrame, initImage, "rgb", "ORIGINAL")  # creating image object in rgb(default)
     grayImage = ImageClass(rightTopFrame, initImage, "gray", "GRAYSCALE")  # creating image object in grayscale
     binaryImage = ImageClass(rightTopFrame, initImage, "gray", "BINARY THRESHOLD")
-    grayImage3 = ImageClass(rightBottomFrame, initImage, "gray", "GRAYSCALE3")
+    erodeImage = ImageClass(rightBottomFrame, binaryImage.getImageArray(), "gray", "ERODE")
 
     # initialization of all images, copied from callbackFileSelection function
 
@@ -279,7 +325,9 @@ if __name__ == '__main__':
     binaryImage.threshold()
 
     # updating grayImage3
-    grayImage3.setImage(initImagePath)
+    erodeImage.setImage(initImagePath)
+    erodeImage.threshold()
+    erodeImage.erode()
 
     grayImagePlot = ImagePlot()
 
