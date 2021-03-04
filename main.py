@@ -26,39 +26,53 @@ class ImagePaths:
 
 class ImageClass:
 
-    def __init__(self, frame, imageArray, colorType="rgb", description=""):
+    def __init__(self, frame, imageArray, colorType="rgb", title=""):
+
+        self.title = title
         self.originalImage = ImageTk.PhotoImage(image=Image.fromarray(imageArray))
 
         self.imageArray = imageArray
         self.colorType = colorType
 
-        size = (450, 350)
-        resized = cv2.resize(self.imageArray, size)
+        self.newSize = (450, 350)
+        resized = cv2.resize(self.imageArray, self.newSize)
         self.image = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
-        self.imageLabel = tk.Label(frame, image=self.image, compound="top", text=description)
-        self.imageLabel.pack(side="right", padx=10, pady=10)
+        self.imageLabel = tk.Label(frame, image=self.image, compound="top", text=title)
+        self.imageLabel.pack(side="left", padx=10, pady=10)
 
     def setColorType(self):
         if self.colorType == "rgb":
-            self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+            self.imageArray = cv2.cvtColor(self.imageArray, cv2.COLOR_BGR2RGB)
 
         if self.colorType == "gray":
-            self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+            self.imageArray = cv2.cvtColor(self.imageArray, cv2.COLOR_BGR2GRAY)
 
     def setImage(self, imagePath):
-        self.image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        self.imageArray = cv2.imread(imagePath, cv2.IMREAD_COLOR)
 
         self.setColorType()
 
-        print(imagePath)
+        print(self.title + ": " + imagePath)
 
-        im = Image.fromarray(self.image)
-        imgtk = ImageTk.PhotoImage(image=im)
+        resized = cv2.resize(self.imageArray, self.newSize) # takes image array and resizes it, returns new image array
+        imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))  # turns imagearray into photoimage
 
         self.image = imgtk
 
-        self.imageLabel['image'] = imgtk
+        self.imageLabel['image'] = imgtk # updating the label to show the new image
+        self.imageLabel.photo = imgtk
+
+    def setThreshold(self):
+
+        ret, thresh1 = cv2.threshold(self.imageArray, 20, 255, cv2.THRESH_BINARY) # threshold operation
+
+        resized = cv2.resize(thresh1, self.newSize)  # takes image array and resizes it, returns new image array
+        imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))
+
+        self.image = imgtk
+
+        self.imageLabel['image'] = imgtk # updating the label to show the new image
         self.imageLabel.photo = imgtk
 
     def getImage(self):
@@ -100,18 +114,34 @@ class ImagePlot:
 
         # TODO: implement histogram view
 
+
 def callbackFileSelection(event):
+
     selection = event.widget.curselection()
+    selectedImagePath = lbImagePaths.getPath(selection[0])
 
-    originalImage.setImage(lbImagePaths.getPath(selection[0]))
-    grayImage.setImage(lbImagePaths.getPath(selection[0]))
+    # for images in imageObjectList:
+    #     images.setImage(lbImagePaths.getPath(selection[0]))
 
+    # updating originalImage
+    originalImage.setImage(selectedImagePath)
+
+    # updating grayImage
+    grayImage.setImage(selectedImagePath)
+
+    # updating binaryImage
+    binaryImage.setImage(selectedImagePath)
+    binaryImage.setThreshold()
+
+    # updating grayImage3
+    grayImage3.setImage(selectedImagePath)
 
 def openPlot():
     grayImagePlot.showPlot(grayImage.getImageArray())
 
 
 def countCoins():
+    # ret, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
     # ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)
     # ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)
     # ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
@@ -141,11 +171,10 @@ if __name__ == '__main__':
 
     image = cv2.imread('.\\coins\\coinb_05.JPG', cv2.IMREAD_COLOR)
 
-    originalImage = ImageClass(rightTopFrame, image, "rgb", "RGB")  # creating image object in rgb(default)
-    grayImage = ImageClass(rightTopFrame, image, "gray", "GRAYSCALE")  # creating image objekt in grayscale
-
-    grayImage2 = ImageClass(rightBottomFrame, image, "gray", "GRAYSCALE")  # creating image objekt in grayscale
-    grayImage3 = ImageClass(rightBottomFrame, image, "gray", "GRAYSCALE")  # creating image objekt in grayscale
+    originalImage = ImageClass(rightTopFrame, image, "rgb", "ORIGINAL")  # creating image object in rgb(default)
+    grayImage = ImageClass(rightTopFrame, image, "gray", "GRAYSCALE")  # creating image object in grayscale
+    binaryImage = ImageClass(rightBottomFrame, image, "gray", "BINARY")
+    grayImage3 = ImageClass(rightBottomFrame, image, "gray", "GRAYSCALE3")
 
     grayImagePlot = ImagePlot()
 
