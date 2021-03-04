@@ -46,7 +46,7 @@ class ImageClass:
         self.imageArray = imageArray
         self.colorType = colorType
 
-        self.newSize = (450, 350)
+        self.newSize = (300, 200)
         resized = cv2.resize(self.imageArray, self.newSize)
         self.image = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
@@ -76,6 +76,12 @@ class ImageClass:
         self.imageLabel.photo = imgtk
 
     def setThreshold(self, thresholdValue=127, maxValue=255, thresholdingTechnique="binary"):
+        # ret, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)            #0: Binary
+        # ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)        #1: Binary Inverted
+        # ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)             #2: Threshold Truncated
+        # ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)            #3: Threshold to Zero
+        # ret, thresh5 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO_INV)        #4: Threshold to Zero Inverted
+
 
         if thresholdingTechnique == "binary":
             ret, thresh1 = cv2.threshold(self.imageArray, thresholdValue, maxValue,
@@ -104,7 +110,8 @@ class ImageClass:
 
 class ImagePlot:
     def __init__(self):
-        self.image = image
+        # self.image = image
+        print("placeholder")
 
     def showPlot(self, imageArray):
         self.imageArray = imageArray
@@ -136,9 +143,7 @@ class ImagePlot:
 
 
 def thresholdSliderCallback(var):
-    # print(type(thresholdVar.get()))
     binaryImage.setThreshold(int(var))
-
 
 
 def callbackFileSelection(event):
@@ -156,7 +161,7 @@ def callbackFileSelection(event):
 
     # updating binaryImage
     binaryImage.setImage(selectedImagePath)
-    binaryImage.setThreshold()
+    binaryImage.setThreshold(int(thresholdSlider.get()))
 
     # updating grayImage3
     grayImage3.setImage(selectedImagePath)
@@ -167,11 +172,7 @@ def openPlot():
 
 
 def countCoins():
-    # ret, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
-    # ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)
-    # ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)
-    # ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
-    # ret, thresh5 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO_INV)
+
 
     # coinLabel['image'] = imgtk
     # coinLabel.photo = imgtk
@@ -180,11 +181,12 @@ def countCoins():
 
 
 if __name__ == '__main__':
+    # main application window
     master = tk.Tk()  # creating a tk application+
-
     master.title('countingCoins')  # title of the program window
+    master.geometry("")  # defining the window size, blank means it will "self adjust"
 
-    master.geometry("")  # defining the window size
+    # subframes, structuring the alignment of GUI objects
 
     rightFrame = tk.Frame(master)
     rightFrame.pack(side='right', fill=tk.BOTH, expand=True)
@@ -195,14 +197,33 @@ if __name__ == '__main__':
     rightBottomFrame = tk.Frame(rightFrame)
     rightBottomFrame.pack(side='bottom', fill=tk.BOTH, expand=True)
 
-    image = cv2.imread('.\\coins\\coinb_05.JPG', cv2.IMREAD_COLOR)
+    initImagePath = '.\\coins\\coinb_01.JPG'  # imagepath for the initial image ... when program is started
+    initImage = cv2.imread(initImagePath, cv2.IMREAD_COLOR)
 
-    originalImage = ImageClass(rightTopFrame, image, "rgb", "ORIGINAL")  # creating image object in rgb(default)
-    grayImage = ImageClass(rightTopFrame, image, "gray", "GRAYSCALE")  # creating image object in grayscale
-    binaryImage = ImageClass(rightBottomFrame, image, "gray", "BINARY THRESHOLD")
-    grayImage3 = ImageClass(rightBottomFrame, image, "gray", "GRAYSCALE3")
+    # initializing the image objects/ different views, used in this program
+    originalImage = ImageClass(rightTopFrame, initImage, "rgb", "ORIGINAL")  # creating image object in rgb(default)
+    grayImage = ImageClass(rightTopFrame, initImage, "gray", "GRAYSCALE")  # creating image object in grayscale
+    binaryImage = ImageClass(rightTopFrame, initImage, "gray", "BINARY THRESHOLD")
+    grayImage3 = ImageClass(rightBottomFrame, initImage, "gray", "GRAYSCALE3")
+
+    # initialization of all images, copied from callbackFileSelection function
+
+    # updating originalImage
+    originalImage.setImage(initImagePath)
+
+    # updating grayImage
+    grayImage.setImage(initImagePath)
+
+    # updating binaryImage
+    binaryImage.setImage(initImagePath)
+    binaryImage.setThreshold()
+
+    # updating grayImage3
+    grayImage3.setImage(initImagePath)
 
     grayImagePlot = ImagePlot()
+
+    # initialization of GUI objects
 
     lbFileSelection = tk.Listbox(master, width=30)  # creating a listbox
     lbFileSelection.bind("<<ListboxSelect>>",
@@ -219,10 +240,10 @@ if __name__ == '__main__':
     openPlot = tk.Button(master, text='Plot', width=15, height=2, command=openPlot)
     openPlot.pack(side="bottom", padx=10, pady=10)
 
-    # thresholdVar = tk.IntVar()
     thresholdSlider = tk.Scale(master, from_=0, to=255, orient=tk.HORIZONTAL,
                                label="Threshold value:", command=thresholdSliderCallback)
     thresholdSlider.pack(side="bottom", padx=10, pady=10)
+    thresholdSlider.set(127) # setting to 127, 127 = start/default value for image objects threshold
 
     master.mainloop()  # window mainloop
 
