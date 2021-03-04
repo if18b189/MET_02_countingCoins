@@ -24,24 +24,38 @@ import os
 
 
 class ImagePaths:
+    """
+    Finds all images and summarizes their paths.
+    """
     def __init__(self, path=os.getcwd() + "\\coins", imageType="jpg"):
+        """
+        Constructor
+        """
         self.imagePaths = glob.glob(os.path.join(path, '*.' + imageType))  # searching for all .jpg files
 
         # print(self.imagePaths)
         # print(os.getcwd())
 
     def fillListBox(self, listBoxObject):
+        """
+        Fills the listbox(GUI) with image names.
+        """
         for imagePath in self.imagePaths:
             imageName = imagePath.split("\\")[-1]  # splitting all the .pdf up
             listBoxObject.insert('end', imageName)  # inserting each word into tk listbox
 
     def getPath(self, listBoxIndex):
+        """
+        Returns image path according to the given index.
+        """
         return self.imagePaths[listBoxIndex]
-
 
 class ImageClass:
 
     def __init__(self, frame, imageArray, colorType="rgb", title=""):
+        """
+        Constructor
+        """
 
         self.title = title
         self.originalImage = ImageTk.PhotoImage(image=Image.fromarray(imageArray))
@@ -57,6 +71,9 @@ class ImageClass:
         self.imageLabel.pack(side="left", padx=10, pady=10)
 
     def setColorType(self):
+        """
+        Color type options to load images during initialization.
+        """
         if self.colorType == "rgb":
             self.imageArray = cv2.cvtColor(self.imageArray, cv2.COLOR_BGR2RGB)
 
@@ -66,6 +83,9 @@ class ImageClass:
         # add more if statements here for additional color options
 
     def setImage(self, imagePath):
+        """
+        Changes the current image and updates with updateImage().
+        """
         self.imageArray = cv2.imread(imagePath, cv2.IMREAD_COLOR)
 
         self.setColorType()
@@ -75,6 +95,9 @@ class ImageClass:
         self.updateImage(self.imageArray)
 
     def threshold(self, thresholdValue=127, maxValue=255, thresholdingTechnique="binary"):
+        """
+        Applies threshold operation with given values and updates the image with updateImage().
+        """
         # ret, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)            #0: Binary
         # ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)        #1: Binary Inverted
         # ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)             #2: Threshold Truncated
@@ -102,10 +125,16 @@ class ImageClass:
         # self.imageLabel.photo = imgtk
 
     def erode(self):
+        """
+        Morphological erode function.
+        """
         print("placeholder")
         # imageErosion = cv2.erode(self.imageArray)
 
     def updateImage(self, imageArray):
+        """
+        Resizes and updates the currently displayed image with the given image array.
+        """
 
         resized = cv2.resize(imageArray, self.newSize)  # takes image array and resizes it, returns new image array
         imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))
@@ -116,9 +145,15 @@ class ImageClass:
         self.imageLabel.photo = imgtk
 
     def getImage(self):
+        """
+        Returns the image currently set in the class object.
+        """
         return self.image
 
     def getImageArray(self):
+        """
+        Returns the image array currently set in the class object.
+        """
         return self.imageArray
 
 
@@ -128,6 +163,10 @@ class ImagePlot:
         print("placeholder")
 
     def showPlot(self, imageArray):
+        """
+        Opens a new window with plots and histograms.
+        *Currently not working
+        """
         self.imageArray = imageArray
 
         # Toplevel object which will
@@ -157,10 +196,18 @@ class ImagePlot:
 
 
 def thresholdSliderCallback(var):
+    """
+    Applies the value from the threshold slider.
+    """
     binaryImage.threshold(int(var))
 
 
 def callbackFileSelection(event):
+    """
+    Gets called everytime an image is selected from the listbox
+    Changes images according to selection.
+    Applies additional functions depending on what kind of operation you want to show.
+    """
     selection = event.widget.curselection()
     selectedImagePath = lbImagePaths.getPath(selection[0])
 
