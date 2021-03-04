@@ -196,7 +196,8 @@ class ImageClass:
         self.updateImage()
 
     def distance(self):
-        imageDistance = cv2.distanceTransform(self.imageArray, cv2.DIST_L2, 3)
+        imageDistance = cv2.distanceTransform(self.imageArray, cv2.DIST_L2, 5)  # applying distance transformation
+        # imageDistance = cv2.normalize(imageDistance, None, 0, 255, cv2.NORM_MINMAX)  # normalizing values, better results/visibility/peak values
 
         self.imageArray = imageDistance
         self.updateImage()
@@ -222,7 +223,6 @@ class ImageClass:
         """
         self.imageArray = self.originalImageArray
         self.image = self.originalImage
-
 
     def getImage(self):
         """
@@ -306,6 +306,7 @@ def thresholdSliderCallback(var):
     distanceImage.dilate()
     distanceImage.distance()
 
+
 def callbackFileSelection(event):
     """
     Gets called everytime an image is selected from the listbox
@@ -345,9 +346,36 @@ def callbackFileSelection(event):
     distanceImage.dilate()
     distanceImage.distance()
 
+
 def openPlot():
     grayImagePlot.showPlot(grayImage.getImageArray())
 
+
+def countCoins():
+    distanceImageArray = distanceImage.getImageArray()
+    cv2.imshow("hello sir", distanceImageArray)
+    cv2.waitKey(0)  # waits until a key is pressed
+
+    print(distanceImageArray)
+
+    highestValue = 255
+    counter = 0
+
+    distanceImageArray = distanceImageArray.flatten()
+
+    for x in distanceImageArray:
+        if x > highestValue:
+            highestValue = x
+
+    print(highestValue)
+
+    for x in distanceImageArray:
+        if x > highestValue - 40:
+            counter += 1
+
+    print(counter)
+
+    # print(ret)
 
 
 if __name__ == '__main__':
@@ -409,7 +437,6 @@ if __name__ == '__main__':
     distanceImage.dilate()
     distanceImage.distance()
 
-
     grayImagePlot = ImagePlot()
 
     # initialization of GUI objects
@@ -423,8 +450,11 @@ if __name__ == '__main__':
     lbImagePaths = ImagePaths()
     lbImagePaths.fillListBox(lbFileSelection)
 
-    openPlot = tk.Button(master, text='Plot', width=15, height=2, command=openPlot)
-    openPlot.pack(side="bottom", padx=10, pady=10)
+    countCoinsButton = tk.Button(master, text='Count Coins', width=15, height=2, command=countCoins)
+    countCoinsButton.pack(side="bottom", padx=10, pady=10)
+
+    openPlotButton = tk.Button(master, text='Plot', width=15, height=2, command=openPlot)
+    openPlotButton.pack(side="bottom", padx=10, pady=10)
 
     thresholdSlider = tk.Scale(master, from_=0, to=255, orient=tk.HORIZONTAL,
                                label="Threshold value:", command=thresholdSliderCallback)
