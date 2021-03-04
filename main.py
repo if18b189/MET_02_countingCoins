@@ -1,5 +1,3 @@
-from tkinter import messagebox
-
 import cv2
 import matplotlib
 import numpy as np
@@ -8,15 +6,6 @@ import pathlib
 import tkinter as tk
 from PIL import Image, ImageTk
 import os
-from matplotlib import pyplot as plt
-from matplotlib.backends._backend_tk import NavigationToolbar2Tk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-from tkinter import ttk
-
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.figure import Figure
 
 
 class ImagePaths:
@@ -37,12 +26,18 @@ class ImagePaths:
 
 class ImageClass:
 
-    def __init__(self, frame, image, colorType="rgb", description=""):
-        self.image = ImageTk.PhotoImage(image=Image.fromarray(image))
+    def __init__(self, frame, imageArray, colorType="rgb", description=""):
+        self.originalImage = ImageTk.PhotoImage(image=Image.fromarray(imageArray))
+
+        self.imageArray = imageArray
+        self.colorType = colorType
+
+        size = (450, 350)
+        resized = cv2.resize(self.imageArray, size)
+        self.image = ImageTk.PhotoImage(image=Image.fromarray(resized))
+
         self.imageLabel = tk.Label(frame, image=self.image, compound="top", text=description)
         self.imageLabel.pack(side="right", padx=10, pady=10)
-        self.imageArray = image
-        self.colorType = colorType
 
     def setColorType(self):
         if self.colorType == "rgb":
@@ -60,6 +55,8 @@ class ImageClass:
 
         im = Image.fromarray(self.image)
         imgtk = ImageTk.PhotoImage(image=im)
+
+        self.image = imgtk
 
         self.imageLabel['image'] = imgtk
         self.imageLabel.photo = imgtk
@@ -89,17 +86,17 @@ class ImagePlot:
         # sets the geometry of toplevel
         newWindow.geometry("")  # "" means it will automatically resize
 
-        f = Figure(figsize=(5, 5), dpi=100)
-        a = f.add_subplot(111)
-        a.plot([1, 2, 3, 4, 5, 6, 7, 8], [5, 6, 1, 3, 8, 9, 3, 5])
-
-        canvas = FigureCanvasTkAgg(f, self)
-        canvas.show()
-        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-
-        toolbar = NavigationToolbar2TkAgg(canvas, self)
-        toolbar.update()
-        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        # f = Figure(figsize=(5, 5), dpi=100)
+        # a = f.add_subplot(111)
+        # a.plot([1, 2, 3, 4, 5, 6, 7, 8], [5, 6, 1, 3, 8, 9, 3, 5])
+        #
+        # canvas = FigureCanvasTkAgg(f, self)
+        # canvas.show()
+        # canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        #
+        # toolbar = NavigationToolbar2TkAgg(canvas, self)
+        # toolbar.update()
+        # canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         # TODO: implement histogram view
 
@@ -115,27 +112,15 @@ def openPlot():
 
 
 def countCoins():
-    self.imageArray = imageArray
+    # ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)
+    # ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)
+    # ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
+    # ret, thresh5 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO_INV)
 
-    # Toplevel object which will
-    # be treated as a new window
-    countWindow = tk.Toplevel(master)
+    # coinLabel['image'] = imgtk
+    # coinLabel.photo = imgtk
 
-    # sets the title of the
-    # Toplevel widget
-    countWindow.title("Counting Coins")  # add filename - Info
-
-    # sets the geometry of toplevel
-    countWindow.geometry("")  # "" means it will automatically resize
-
-
-    img = grayImage.getImage()
-
-    ret, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
-    ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)
-    ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)
-    ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
-    ret, thresh5 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO_INV)
+    threshold = ImageWindow(master, grayImage.getImageArray(), "hello")
 
 
 if __name__ == '__main__':
@@ -148,10 +133,19 @@ if __name__ == '__main__':
     rightFrame = tk.Frame(master)
     rightFrame.pack(side='right', fill=tk.BOTH, expand=True)
 
+    rightTopFrame = tk.Frame(rightFrame)
+    rightTopFrame.pack(side='top', fill=tk.BOTH, expand=True)
+
+    rightBottomFrame = tk.Frame(rightFrame)
+    rightBottomFrame.pack(side='bottom', fill=tk.BOTH, expand=True)
+
     image = cv2.imread('.\\coins\\coinb_05.JPG', cv2.IMREAD_COLOR)
 
-    originalImage = ImageClass(rightFrame, image, "rgb", "RGB")  # creating image object in rgb(default)
-    grayImage = ImageClass(rightFrame, image, "gray", "GRAYSCALE")  # creating image objekt in grayscale
+    originalImage = ImageClass(rightTopFrame, image, "rgb", "RGB")  # creating image object in rgb(default)
+    grayImage = ImageClass(rightTopFrame, image, "gray", "GRAYSCALE")  # creating image objekt in grayscale
+
+    grayImage2 = ImageClass(rightBottomFrame, image, "gray", "GRAYSCALE")  # creating image objekt in grayscale
+    grayImage3 = ImageClass(rightBottomFrame, image, "gray", "GRAYSCALE")  # creating image objekt in grayscale
 
     grayImagePlot = ImagePlot()
 
@@ -167,8 +161,8 @@ if __name__ == '__main__':
     countCoins = tk.Button(master, text='Count', width=15, height=2, command=countCoins)
     countCoins.pack(side="bottom", padx=10, pady=10)
 
-    countCoins = tk.Button(master, text='Plot', width=15, height=2, command=openPlot)
-    countCoins.pack(side="bottom", padx=10, pady=10)
+    openPlot = tk.Button(master, text='Plot', width=15, height=2, command=openPlot)
+    openPlot.pack(side="bottom", padx=10, pady=10)
 
     master.mainloop()  # window mainloop
 
