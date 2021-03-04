@@ -1,3 +1,15 @@
+"""
+useful links:
+
+    https://java2blog.com/cv2-imread-python/#cv2imread_Method_example # good source to look up basic cv2 functionalities
+
+    https://docs.opencv.org/4.5.1/db/d8e/tutorial_threshold.html # documentation and examples for thresholding operations
+    https://docs.opencv.org/3.4/d7/d4d/tutorial_py_thresholding.html
+
+
+
+"""
+
 import cv2
 import matplotlib
 import numpy as np
@@ -55,24 +67,32 @@ class ImageClass:
 
         print(self.title + ": " + imagePath)
 
-        resized = cv2.resize(self.imageArray, self.newSize) # takes image array and resizes it, returns new image array
+        resized = cv2.resize(self.imageArray, self.newSize)  # takes image array and resizes it, returns new image array
         imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))  # turns imagearray into photoimage
 
         self.image = imgtk
 
-        self.imageLabel['image'] = imgtk # updating the label to show the new image
+        self.imageLabel['image'] = imgtk  # updating the label to show the new image
         self.imageLabel.photo = imgtk
 
-    def setThreshold(self):
+    def setThreshold(self, thresholdValue=127, maxValue=255, thresholdingTechnique="binary"):
 
-        ret, thresh1 = cv2.threshold(self.imageArray, 20, 255, cv2.THRESH_BINARY) # threshold operation
+        if thresholdingTechnique == "binary":
+            ret, thresh1 = cv2.threshold(self.imageArray, thresholdValue, maxValue,
+                                         cv2.THRESH_BINARY)  # threshold binary operation
+
+        if thresholdingTechnique == "binary_inv":
+            ret, thresh1 = cv2.threshold(self.imageArray, thresholdValue, maxValue,
+                                         cv2.THRESH_BINARY_INV)  # threshold binary inverse operation
+
+        # add more if statements here for additional thresholding technique options
 
         resized = cv2.resize(thresh1, self.newSize)  # takes image array and resizes it, returns new image array
         imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
         self.image = imgtk
 
-        self.imageLabel['image'] = imgtk # updating the label to show the new image
+        self.imageLabel['image'] = imgtk  # updating the label to show the new image
         self.imageLabel.photo = imgtk
 
     def getImage(self):
@@ -115,8 +135,13 @@ class ImagePlot:
         # TODO: implement histogram view
 
 
-def callbackFileSelection(event):
+def thresholdSliderCallback(var):
+    # print(type(thresholdVar.get()))
+    binaryImage.setThreshold(int(var))
 
+
+
+def callbackFileSelection(event):
     selection = event.widget.curselection()
     selectedImagePath = lbImagePaths.getPath(selection[0])
 
@@ -135,6 +160,7 @@ def callbackFileSelection(event):
 
     # updating grayImage3
     grayImage3.setImage(selectedImagePath)
+
 
 def openPlot():
     grayImagePlot.showPlot(grayImage.getImageArray())
@@ -173,7 +199,7 @@ if __name__ == '__main__':
 
     originalImage = ImageClass(rightTopFrame, image, "rgb", "ORIGINAL")  # creating image object in rgb(default)
     grayImage = ImageClass(rightTopFrame, image, "gray", "GRAYSCALE")  # creating image object in grayscale
-    binaryImage = ImageClass(rightBottomFrame, image, "gray", "BINARY")
+    binaryImage = ImageClass(rightBottomFrame, image, "gray", "BINARY THRESHOLD")
     grayImage3 = ImageClass(rightBottomFrame, image, "gray", "GRAYSCALE3")
 
     grayImagePlot = ImagePlot()
@@ -192,6 +218,11 @@ if __name__ == '__main__':
 
     openPlot = tk.Button(master, text='Plot', width=15, height=2, command=openPlot)
     openPlot.pack(side="bottom", padx=10, pady=10)
+
+    # thresholdVar = tk.IntVar()
+    thresholdSlider = tk.Scale(master, from_=0, to=255, orient=tk.HORIZONTAL,
+                               label="Threshold value:", command=thresholdSliderCallback)
+    thresholdSlider.pack(side="bottom", padx=10, pady=10)
 
     master.mainloop()  # window mainloop
 
