@@ -53,6 +53,9 @@ class ImagePaths:
 
 
 class ImageClass:
+    """
+    Shows image on a window as a tkinter label. Summarizes operations for images.
+    """
 
     def __init__(self, frame, imageArray, colorType="rgb", title=""):
         """
@@ -61,40 +64,38 @@ class ImageClass:
 
         self.title = title
         self.originalImage = ImageTk.PhotoImage(image=Image.fromarray(imageArray))
+        self.originalImageArray = imageArray
 
         self.imageArray = imageArray
         self.colorType = colorType
 
-        self.newSize = (300, 200)  # default size for all images displayed in the program
+        self.newSize = (500, 300)  # default size for all images displayed in the program
         resized = cv2.resize(self.imageArray, self.newSize)
         self.image = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
         self.imageLabel = tk.Label(frame, image=self.image, compound="top", text=title)
         self.imageLabel.pack(side="left", padx=10, pady=10)
 
-    def setColorType(self):
-        """
-        Color type options to load images during initialization.
-        """
-        if self.colorType == "rgb":
-            self.imageArray = cv2.cvtColor(self.imageArray, cv2.COLOR_BGR2RGB)
-
-        if self.colorType == "gray":
-            self.imageArray = cv2.cvtColor(self.imageArray, cv2.COLOR_BGR2GRAY)
-
-        # add more if statements here for additional color options
-
     def setImage(self, imagePath):
         """
         Changes the current image and updates with updateImage().
         """
-        self.imageArray = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        global convertedImageArray
+        imageArray = cv2.imread(imagePath, cv2.IMREAD_COLOR)
 
-        self.setColorType()
+        if self.colorType == "rgb":
+            convertedImageArray = cv2.cvtColor(imageArray, cv2.COLOR_BGR2RGB)
+
+        if self.colorType == "gray":
+            convertedImageArray = cv2.cvtColor(imageArray, cv2.COLOR_BGR2GRAY)
+
+        # add more if statements here for additional color options
 
         print(self.title + ": " + imagePath)
 
-        self.updateImage(self.imageArray)
+        self.imageArray = convertedImageArray
+        self.originalImageArray = convertedImageArray
+        self.updateImage()
 
     def threshold(self, thresholdValue=127, maxValue=255, thresholdingTechnique="binary"):
         """
@@ -106,6 +107,8 @@ class ImageClass:
         # ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)            #3: Threshold to Zero
         # ret, thresh5 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO_INV)        #4: Threshold to Zero Inverted
 
+        global thresh1
+
         if thresholdingTechnique == "binary":
             ret, thresh1 = cv2.threshold(self.imageArray, thresholdValue, maxValue,
                                          cv2.THRESH_BINARY)  # threshold binary operation
@@ -116,7 +119,8 @@ class ImageClass:
 
         # add more if statements here for additional thresholding technique options
 
-        self.updateImage(thresh1)
+        self.imageArray = thresh1
+        self.updateImage()
 
     def erode(self):
         """
@@ -128,7 +132,10 @@ class ImageClass:
                            [-1, 4, -1],
                            [0, -1, 0]], np.uint8)  # laplacian operator/mask
 
-        imageErosion = cv2.erode(self.imageArray, kernel, iterations=1)
+        imageErosion = cv2.erode(self.imageArray, kernel, iterations=5)
+
+        self.imageArray = imageErosion
+        self.updateImage()
 
         """
         morphological transformations
@@ -172,11 +179,13 @@ class ImageClass:
                
         """
 
-    def updateImage(self, imageArray):
+    def updateImage(self):
         """
         Resizes and updates the currently displayed image with the given image array.
         """
+        imageArray = self.imageArray
 
+        # self.imageArray = imageArray
         resized = cv2.resize(imageArray, self.newSize)  # takes image array and resizes it, returns new image array
         imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
@@ -184,6 +193,14 @@ class ImageClass:
 
         self.imageLabel['image'] = imgtk  # updating the label to show the new image
         self.imageLabel.photo = imgtk
+
+    def reset(self):
+        """
+        Returns the image and imageArray to their original values (the values, they were initialized with).
+        """
+        self.imageArray = self.originalImageArray
+        self.image = self.originalImage
+
 
     def getImage(self):
         """
@@ -199,6 +216,11 @@ class ImageClass:
 
 
 class ImagePlot:
+    """
+    Opens a new window with plots and histograms.
+    *Currently not working
+    """
+
     def __init__(self):
         # self.image = image
         print("placeholder")
@@ -240,8 +262,12 @@ def thresholdSliderCallback(var):
     """
     Applies the value from the threshold slider on following image objects.
     """
+    binaryImage.reset()
     binaryImage.threshold(int(var))
+
+    erodeImage.reset()
     erodeImage.threshold(int(var))
+    erodeImage.erode()
 
 
 def callbackFileSelection(event):
@@ -250,13 +276,10 @@ def callbackFileSelection(event):
     Changes images according to selection.
     Applies additional functions depending on what kind of operation you want to show.
 
-    Note: inefficiency, creating new objects for each image, not inheriting operations from precious image
+    Note: inefficiency, creating new objects for each image and reapplying operations instead of inheritance ( from previous images/steps).
     """
     selection = event.widget.curselection()
     selectedImagePath = lbImagePaths.getPath(selection[0])
-
-    # for images in imageObjectList:
-    #     images.setImage(lbImagePaths.getPath(selection[0]))
 
     # updating originalImage
     originalImage.setImage(selectedImagePath)
