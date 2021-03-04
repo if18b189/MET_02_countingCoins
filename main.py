@@ -6,6 +6,9 @@ useful links:
     https://docs.opencv.org/4.5.1/db/d8e/tutorial_threshold.html # documentation and examples for thresholding operations
     https://docs.opencv.org/3.4/d7/d4d/tutorial_py_thresholding.html
 
+    https://docs.opencv.org/3.4/db/df6/tutorial_erosion_dilatation.html # opencv erosion and dilatation
+    https://docs.opencv.org/3.4/d4/d86/group__imgproc__filter.html#gaeb1e0c1033e3f6b891a25d0511362aeb # functions
+
 
 
 """
@@ -46,7 +49,7 @@ class ImageClass:
         self.imageArray = imageArray
         self.colorType = colorType
 
-        self.newSize = (300, 200)
+        self.newSize = (300, 200)   # default size for all images displayed in the program
         resized = cv2.resize(self.imageArray, self.newSize)
         self.image = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
@@ -60,6 +63,8 @@ class ImageClass:
         if self.colorType == "gray":
             self.imageArray = cv2.cvtColor(self.imageArray, cv2.COLOR_BGR2GRAY)
 
+        # add more if statements here for additional color options
+
     def setImage(self, imagePath):
         self.imageArray = cv2.imread(imagePath, cv2.IMREAD_COLOR)
 
@@ -67,21 +72,14 @@ class ImageClass:
 
         print(self.title + ": " + imagePath)
 
-        resized = cv2.resize(self.imageArray, self.newSize)  # takes image array and resizes it, returns new image array
-        imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))  # turns imagearray into photoimage
+        self.updateImage(self.imageArray)
 
-        self.image = imgtk
-
-        self.imageLabel['image'] = imgtk  # updating the label to show the new image
-        self.imageLabel.photo = imgtk
-
-    def setThreshold(self, thresholdValue=127, maxValue=255, thresholdingTechnique="binary"):
+    def threshold(self, thresholdValue=127, maxValue=255, thresholdingTechnique="binary"):
         # ret, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)            #0: Binary
         # ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)        #1: Binary Inverted
         # ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)             #2: Threshold Truncated
         # ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)            #3: Threshold to Zero
         # ret, thresh5 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO_INV)        #4: Threshold to Zero Inverted
-
 
         if thresholdingTechnique == "binary":
             ret, thresh1 = cv2.threshold(self.imageArray, thresholdValue, maxValue,
@@ -93,7 +91,23 @@ class ImageClass:
 
         # add more if statements here for additional thresholding technique options
 
-        resized = cv2.resize(thresh1, self.newSize)  # takes image array and resizes it, returns new image array
+        self.updateImage(thresh1)
+
+        # resized = cv2.resize(thresh1, self.newSize)  # takes image array and resizes it, returns new image array
+        # imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))
+        #
+        # self.image = imgtk
+        #
+        # self.imageLabel['image'] = imgtk  # updating the label to show the new image
+        # self.imageLabel.photo = imgtk
+
+    def erode(self):
+        print("placeholder")
+        # imageErosion = cv2.erode(self.imageArray)
+
+    def updateImage(self, imageArray):
+
+        resized = cv2.resize(imageArray, self.newSize)  # takes image array and resizes it, returns new image array
         imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
         self.image = imgtk
@@ -143,7 +157,7 @@ class ImagePlot:
 
 
 def thresholdSliderCallback(var):
-    binaryImage.setThreshold(int(var))
+    binaryImage.threshold(int(var))
 
 
 def callbackFileSelection(event):
@@ -161,7 +175,7 @@ def callbackFileSelection(event):
 
     # updating binaryImage
     binaryImage.setImage(selectedImagePath)
-    binaryImage.setThreshold(int(thresholdSlider.get()))
+    binaryImage.threshold(int(thresholdSlider.get()))
 
     # updating grayImage3
     grayImage3.setImage(selectedImagePath)
@@ -172,8 +186,6 @@ def openPlot():
 
 
 def countCoins():
-
-
     # coinLabel['image'] = imgtk
     # coinLabel.photo = imgtk
 
@@ -197,6 +209,7 @@ if __name__ == '__main__':
     rightBottomFrame = tk.Frame(rightFrame)
     rightBottomFrame.pack(side='bottom', fill=tk.BOTH, expand=True)
 
+    # initial image
     initImagePath = '.\\coins\\coinb_01.JPG'  # imagepath for the initial image ... when program is started
     initImage = cv2.imread(initImagePath, cv2.IMREAD_COLOR)
 
@@ -216,7 +229,7 @@ if __name__ == '__main__':
 
     # updating binaryImage
     binaryImage.setImage(initImagePath)
-    binaryImage.setThreshold()
+    binaryImage.threshold()
 
     # updating grayImage3
     grayImage3.setImage(initImagePath)
@@ -243,7 +256,7 @@ if __name__ == '__main__':
     thresholdSlider = tk.Scale(master, from_=0, to=255, orient=tk.HORIZONTAL,
                                label="Threshold value:", command=thresholdSliderCallback)
     thresholdSlider.pack(side="bottom", padx=10, pady=10)
-    thresholdSlider.set(127) # setting to 127, 127 = start/default value for image objects threshold
+    thresholdSlider.set(127)  # setting to 127, 127 = start/default value for image objects threshold
 
     master.mainloop()  # window mainloop
 
