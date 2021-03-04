@@ -195,6 +195,12 @@ class ImageClass:
         self.imageArray = imageDilation
         self.updateImage()
 
+    def distance(self):
+        imageDistance = cv2.distanceTransform(self.imageArray, cv2.DIST_L2, 3)
+
+        self.imageArray = imageDistance
+        self.updateImage()
+
     def updateImage(self):
         """
         Resizes and updates the currently displayed image with the given image array.
@@ -293,6 +299,12 @@ def thresholdSliderCallback(var):
     dilateImage.erode()
     dilateImage.dilate()
 
+    # updating distanceImage
+    distanceImage.reset()
+    distanceImage.threshold(int(int(var)))
+    distanceImage.erode()
+    distanceImage.dilate()
+    distanceImage.distance()
 
 def callbackFileSelection(event):
     """
@@ -326,16 +338,16 @@ def callbackFileSelection(event):
     dilateImage.erode()
     dilateImage.dilate()
 
+    # updating distanceImage
+    distanceImage.setImage(selectedImagePath)
+    distanceImage.threshold(int(thresholdSlider.get()))
+    distanceImage.erode()
+    distanceImage.dilate()
+    distanceImage.distance()
 
 def openPlot():
     grayImagePlot.showPlot(grayImage.getImageArray())
 
-
-def countCoins():
-    # coinLabel['image'] = imgtk
-    # coinLabel.photo = imgtk
-
-    threshold = ImageWindow(master, grayImage.getImageArray(), "hello")
 
 
 if __name__ == '__main__':
@@ -365,6 +377,7 @@ if __name__ == '__main__':
     binaryImage = ImageClass(rightTopFrame, initImage, "gray", "BINARY THRESHOLD")
     erodeImage = ImageClass(rightBottomFrame, binaryImage.getImageArray(), "gray", "ERODE")
     dilateImage = ImageClass(rightBottomFrame, erodeImage.getImageArray(), "gray", "DILATE")
+    distanceImage = ImageClass(rightBottomFrame, dilateImage.getImageArray(), "gray", "DISTANCE")
 
     # initialization of all images, copied from callbackFileSelection function
 
@@ -386,7 +399,16 @@ if __name__ == '__main__':
     # updating dilateImage
     dilateImage.setImage(initImagePath)
     dilateImage.threshold()
+    dilateImage.erode()
     dilateImage.dilate()
+
+    # updating distanceImage
+    distanceImage.setImage(initImagePath)
+    distanceImage.threshold()
+    distanceImage.erode()
+    distanceImage.dilate()
+    distanceImage.distance()
+
 
     grayImagePlot = ImagePlot()
 
@@ -400,9 +422,6 @@ if __name__ == '__main__':
 
     lbImagePaths = ImagePaths()
     lbImagePaths.fillListBox(lbFileSelection)
-
-    countCoins = tk.Button(master, text='Count', width=15, height=2, command=countCoins)
-    countCoins.pack(side="bottom", padx=10, pady=10)
 
     openPlot = tk.Button(master, text='Plot', width=15, height=2, command=openPlot)
     openPlot.pack(side="bottom", padx=10, pady=10)
