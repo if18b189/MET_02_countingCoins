@@ -69,7 +69,7 @@ class ImageClass:
         self.imageArray = imageArray
         self.colorType = colorType
 
-        self.newSize = (500, 300)  # default size for all images displayed in the program
+        self.newSize = (400, 300)  # default size for all images displayed in the program
         resized = cv2.resize(self.imageArray, self.newSize)
         self.image = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
@@ -133,6 +133,7 @@ class ImageClass:
                            [0, -1, 0]], np.uint8)  # laplacian operator/mask
 
         imageErosion = cv2.erode(self.imageArray, kernel, iterations=5)
+        # tweaking the iterations could lead to better results
 
         self.imageArray = imageErosion
         self.updateImage()
@@ -178,6 +179,21 @@ class ImageClass:
                [0, 0, 1, 0, 0]], dtype=uint8)
                
         """
+
+    def dilate(self):
+        """
+        Morphological dilate function.
+        """
+
+        kernel = np.array([[0, -1, 0],
+                           [-1, 4, -1],
+                           [0, -1, 0]], np.uint8)  # laplacian operator/mask
+
+        imageDilation = cv2.dilate(self.imageArray, kernel, iterations=5)
+        # tweaking the iterations could lead to better results
+
+        self.imageArray = imageDilation
+        self.updateImage()
 
     def updateImage(self):
         """
@@ -262,12 +278,20 @@ def thresholdSliderCallback(var):
     """
     Applies the value from the threshold slider on following image objects.
     """
+    # updating binaryImage
     binaryImage.reset()
     binaryImage.threshold(int(var))
 
+    # updating erodeImage
     erodeImage.reset()
     erodeImage.threshold(int(var))
     erodeImage.erode()
+
+    # updating dilateImage
+    dilateImage.reset()
+    dilateImage.threshold(int(int(var)))
+    dilateImage.erode()
+    dilateImage.dilate()
 
 
 def callbackFileSelection(event):
@@ -291,10 +315,16 @@ def callbackFileSelection(event):
     binaryImage.setImage(selectedImagePath)
     binaryImage.threshold(int(thresholdSlider.get()))
 
-    # updating grayImage3
+    # updating erodeImage
     erodeImage.setImage(selectedImagePath)
     erodeImage.threshold(int(thresholdSlider.get()))
     erodeImage.erode()
+
+    # updating dilateImage
+    dilateImage.setImage(selectedImagePath)
+    dilateImage.threshold(int(thresholdSlider.get()))
+    dilateImage.erode()
+    dilateImage.dilate()
 
 
 def openPlot():
@@ -334,6 +364,7 @@ if __name__ == '__main__':
     grayImage = ImageClass(rightTopFrame, initImage, "gray", "GRAYSCALE")  # creating image object in grayscale
     binaryImage = ImageClass(rightTopFrame, initImage, "gray", "BINARY THRESHOLD")
     erodeImage = ImageClass(rightBottomFrame, binaryImage.getImageArray(), "gray", "ERODE")
+    dilateImage = ImageClass(rightBottomFrame, erodeImage.getImageArray(), "gray", "DILATE")
 
     # initialization of all images, copied from callbackFileSelection function
 
@@ -347,10 +378,15 @@ if __name__ == '__main__':
     binaryImage.setImage(initImagePath)
     binaryImage.threshold()
 
-    # updating grayImage3
+    # updating erodeImage
     erodeImage.setImage(initImagePath)
     erodeImage.threshold()
     erodeImage.erode()
+
+    # updating dilateImage
+    dilateImage.setImage(initImagePath)
+    dilateImage.threshold()
+    dilateImage.dilate()
 
     grayImagePlot = ImagePlot()
 
