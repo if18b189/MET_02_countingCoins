@@ -12,6 +12,7 @@ useful links and sources:
 
 
 """
+from tkinter import ttk
 
 import cv2
 import matplotlib
@@ -132,7 +133,7 @@ class ImageClass:
                            [-1, 4, -1],
                            [0, -1, 0]], np.uint8)  # laplacian operator/mask
 
-        imageErosion = cv2.erode(self.imageArray, kernel, iterations= iterationsArg)
+        imageErosion = cv2.erode(self.imageArray, kernel, iterations=iterationsArg)
         # tweaking the iterations could lead to better results
 
         self.imageArray = imageErosion
@@ -189,14 +190,23 @@ class ImageClass:
                            [-1, 4, -1],
                            [0, -1, 0]], np.uint8)  # laplacian operator/mask
 
-        imageDilation = cv2.dilate(self.imageArray, kernel, iterations= iterationsArg)
+        imageDilation = cv2.dilate(self.imageArray, kernel, iterations=iterationsArg)
         # tweaking the iterations could lead to better results
 
         self.imageArray = imageDilation
         self.updateImage()
 
-    def distance(self):
-        imageDistance = cv2.distanceTransform(self.imageArray, cv2.DIST_L2, 5)  # applying distance transformation
+    def distance(self, operationArg="DIST_C"):
+
+        if operationArg == "DIST_C":   operation = cv2.DIST_C
+        if operationArg == "DIST_L1":   operation = cv2.DIST_L1
+        if operationArg == "DIST_L2":   operation = cv2.DIST_L2
+        if operationArg == "DIST_LABEL_PIXEL":  operation = cv2.DIST_LABEL_PIXEL
+        if operationArg == "DIST_MASK_3":   operation = cv2.DIST_MASK_3
+
+        # examples of distance transformations: https://www.tutorialspoint.com/opencv/opencv_distance_transformation.htm
+
+        imageDistance = cv2.distanceTransform(self.imageArray, operation, 3)  # applying distance transformation
         # imageDistance = cv2.normalize(imageDistance, None, 0, 255, cv2.NORM_MINMAX)  # normalizing values, better results/visibility/peak values
 
         self.imageArray = imageDistance
@@ -280,7 +290,7 @@ class ImagePlot:
         # TODO: implement histogram view
 
 
-def sliderCallback(event):
+def updateParameter(event):
     """
     Applies the value from the threshold slider on following image objects.
     """
@@ -304,7 +314,7 @@ def sliderCallback(event):
     distanceImage.threshold(int(thresholdBinarySlider.get()))
     distanceImage.erode(int(erodeIterationSlider.get()))
     distanceImage.dilate(int(dilateIterationSlider.get()))
-    distanceImage.distance()
+    distanceImage.distance(distanceTypeCombo.get())
 
 
 def callbackFileSelection(event):
@@ -344,7 +354,7 @@ def callbackFileSelection(event):
     distanceImage.threshold(int(thresholdBinarySlider.get()))
     distanceImage.erode(int(erodeIterationSlider.get()))
     distanceImage.dilate(int(dilateIterationSlider.get()))
-    distanceImage.distance()
+    distanceImage.distance(distanceTypeCombo.get())
 
 
 def openPlot():
@@ -458,21 +468,31 @@ if __name__ == '__main__':
 
     # thresholdBinarySlider
     thresholdBinarySlider = tk.Scale(master, from_=0, to=255, orient=tk.HORIZONTAL,
-                               label="Threshold value:", command=sliderCallback)
-    thresholdBinarySlider.pack(side="bottom", padx=10, pady=10)
+                                     label="Binary Threshold:", command=updateParameter)
+    thresholdBinarySlider.pack(side="top", fill=tk.X, padx=10, pady=2)
     thresholdBinarySlider.set(127)  # setting to 127, 127 = start/default value for image objects threshold
 
     # erodeSLider
     erodeIterationSlider = tk.Scale(master, from_=0, to=20, orient=tk.HORIZONTAL,
-                               label="Erode Iterations:", command=sliderCallback)
-    erodeIterationSlider.pack(side="bottom", padx=10, pady=10)
-    erodeIterationSlider.set(1)
+                                    label="Erode Iterations:", command=updateParameter)
+    erodeIterationSlider.pack(side="top", fill=tk.X, padx=10, pady=2)
+    erodeIterationSlider.set(1)  # preset value
 
     # dilateSlider
     dilateIterationSlider = tk.Scale(master, from_=0, to=20, orient=tk.HORIZONTAL,
-                               label="Dilate Iterations:", command=sliderCallback)
-    dilateIterationSlider.pack(side="bottom", padx=10, pady=10)
-    dilateIterationSlider.set(1)
+                                     label="Dilate Iterations:", command=updateParameter)
+    dilateIterationSlider.pack(side="top", fill=tk.X,padx=10, pady=2)
+    dilateIterationSlider.set(1)  # preset value
+
+    # distance operation type combobox
+    distanceTypes = ["DIST_C", "DIST_L1", "DIST_L2",
+                     "DIST_LABEL_PIXEL", "DIST_MASK_3"]
+    distanceTypeLabel = tk.Label(text="Distance Operation:")
+    distanceTypeLabel.pack(side="left", fill=tk.X, padx=10, pady=2)
+    distanceTypeCombo = ttk.Combobox(master, values=distanceTypes)
+    distanceTypeCombo.bind('<<ComboboxSelected>>', updateParameter)
+    distanceTypeCombo.set("DIST_C")
+    distanceTypeCombo.pack(side="top", fill=tk.X, padx=10, pady=2)
 
     master.mainloop()  # window mainloop
 
