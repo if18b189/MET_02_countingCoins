@@ -122,7 +122,7 @@ class ImageClass:
         self.imageArray = thresh1
         self.updateImage()
 
-    def erode(self):
+    def erode(self, iterationsArg=1):
         """
         Morphological erode function.
         """
@@ -132,7 +132,7 @@ class ImageClass:
                            [-1, 4, -1],
                            [0, -1, 0]], np.uint8)  # laplacian operator/mask
 
-        imageErosion = cv2.erode(self.imageArray, kernel, iterations=5)
+        imageErosion = cv2.erode(self.imageArray, kernel, iterations= iterationsArg)
         # tweaking the iterations could lead to better results
 
         self.imageArray = imageErosion
@@ -180,7 +180,7 @@ class ImageClass:
                
         """
 
-    def dilate(self):
+    def dilate(self, iterationsArg=1):
         """
         Morphological dilate function.
         """
@@ -189,7 +189,7 @@ class ImageClass:
                            [-1, 4, -1],
                            [0, -1, 0]], np.uint8)  # laplacian operator/mask
 
-        imageDilation = cv2.dilate(self.imageArray, kernel, iterations=5)
+        imageDilation = cv2.dilate(self.imageArray, kernel, iterations= iterationsArg)
         # tweaking the iterations could lead to better results
 
         self.imageArray = imageDilation
@@ -280,30 +280,30 @@ class ImagePlot:
         # TODO: implement histogram view
 
 
-def thresholdSliderCallback(var):
+def sliderCallback(event):
     """
     Applies the value from the threshold slider on following image objects.
     """
     # updating binaryImage
     binaryImage.reset()
-    binaryImage.threshold(int(var))
+    binaryImage.threshold(int(thresholdBinarySlider.get()))
 
     # updating erodeImage
     erodeImage.reset()
-    erodeImage.threshold(int(var))
-    erodeImage.erode()
+    erodeImage.threshold(int(thresholdBinarySlider.get()))
+    erodeImage.erode(int(erodeIterationSlider.get()))
 
     # updating dilateImage
     dilateImage.reset()
-    dilateImage.threshold(int(int(var)))
-    dilateImage.erode()
-    dilateImage.dilate()
+    dilateImage.threshold(int(thresholdBinarySlider.get()))
+    dilateImage.erode(int(erodeIterationSlider.get()))
+    dilateImage.dilate(int(dilateIterationSlider.get()))
 
     # updating distanceImage
     distanceImage.reset()
-    distanceImage.threshold(int(int(var)))
-    distanceImage.erode()
-    distanceImage.dilate()
+    distanceImage.threshold(int(thresholdBinarySlider.get()))
+    distanceImage.erode(int(erodeIterationSlider.get()))
+    distanceImage.dilate(int(dilateIterationSlider.get()))
     distanceImage.distance()
 
 
@@ -326,24 +326,24 @@ def callbackFileSelection(event):
 
     # updating binaryImage
     binaryImage.setImage(selectedImagePath)
-    binaryImage.threshold(int(thresholdSlider.get()))
+    binaryImage.threshold(int(thresholdBinarySlider.get()))
 
     # updating erodeImage
     erodeImage.setImage(selectedImagePath)
-    erodeImage.threshold(int(thresholdSlider.get()))
-    erodeImage.erode()
+    erodeImage.threshold(int(thresholdBinarySlider.get()))
+    erodeImage.erode(int(erodeIterationSlider.get()))
 
     # updating dilateImage
     dilateImage.setImage(selectedImagePath)
-    dilateImage.threshold(int(thresholdSlider.get()))
-    dilateImage.erode()
-    dilateImage.dilate()
+    dilateImage.threshold(int(thresholdBinarySlider.get()))
+    dilateImage.erode(int(erodeIterationSlider.get()))
+    dilateImage.dilate(int(dilateIterationSlider.get()))
 
     # updating distanceImage
     distanceImage.setImage(selectedImagePath)
-    distanceImage.threshold(int(thresholdSlider.get()))
-    distanceImage.erode()
-    distanceImage.dilate()
+    distanceImage.threshold(int(thresholdBinarySlider.get()))
+    distanceImage.erode(int(erodeIterationSlider.get()))
+    distanceImage.dilate(int(dilateIterationSlider.get()))
     distanceImage.distance()
 
 
@@ -456,10 +456,23 @@ if __name__ == '__main__':
     openPlotButton = tk.Button(master, text='Plot', width=15, height=2, command=openPlot)
     openPlotButton.pack(side="bottom", padx=10, pady=10)
 
-    thresholdSlider = tk.Scale(master, from_=0, to=255, orient=tk.HORIZONTAL,
-                               label="Threshold value:", command=thresholdSliderCallback)
-    thresholdSlider.pack(side="bottom", padx=10, pady=10)
-    thresholdSlider.set(127)  # setting to 127, 127 = start/default value for image objects threshold
+    # thresholdBinarySlider
+    thresholdBinarySlider = tk.Scale(master, from_=0, to=255, orient=tk.HORIZONTAL,
+                               label="Threshold value:", command=sliderCallback)
+    thresholdBinarySlider.pack(side="bottom", padx=10, pady=10)
+    thresholdBinarySlider.set(127)  # setting to 127, 127 = start/default value for image objects threshold
+
+    # erodeSLider
+    erodeIterationSlider = tk.Scale(master, from_=0, to=20, orient=tk.HORIZONTAL,
+                               label="Erode Iterations:", command=sliderCallback)
+    erodeIterationSlider.pack(side="bottom", padx=10, pady=10)
+    erodeIterationSlider.set(1)
+
+    # dilateSlider
+    dilateIterationSlider = tk.Scale(master, from_=0, to=20, orient=tk.HORIZONTAL,
+                               label="Dilate Iterations:", command=sliderCallback)
+    dilateIterationSlider.pack(side="bottom", padx=10, pady=10)
+    dilateIterationSlider.set(1)
 
     master.mainloop()  # window mainloop
 
