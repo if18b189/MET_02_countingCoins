@@ -12,7 +12,7 @@ useful links and sources:
 
 
 """
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 import cv2
 import matplotlib
@@ -22,6 +22,10 @@ import pathlib
 import tkinter as tk
 from PIL import Image, ImageTk
 import os
+
+# printing bigger np matrix
+# # a = np.arange(127 * 127).reshape(127, 127)
+np.set_printoptions(edgeitems=127)  # this line sets the amount you want to print
 
 
 class ImagePaths:
@@ -92,9 +96,11 @@ class ImageClass:
 
         # add more if statements here for additional color options
 
-        print(self.title + ": " + imagePath)
+        # print(self.title + ": " + imagePath)
 
+        self.image = ImageTk.PhotoImage(image=Image.fromarray(convertedImageArray))
         self.imageArray = convertedImageArray
+        self.originalImage = ImageTk.PhotoImage(image=Image.fromarray(convertedImageArray))
         self.originalImageArray = convertedImageArray
         self.updateImage()
 
@@ -127,7 +133,6 @@ class ImageClass:
         """
         Morphological erode function.
         """
-        # print("placeholder")
 
         kernel = np.array([[0, -1, 0],
                            [-1, 4, -1],
@@ -207,19 +212,59 @@ class ImageClass:
         # examples of distance transformations: https://www.tutorialspoint.com/opencv/opencv_distance_transformation.htm
 
         imageDistance = cv2.distanceTransform(self.imageArray, operation, 3)  # applying distance transformation
-        # imageDistance = cv2.normalize(imageDistance, None, 0, 255, cv2.NORM_MINMAX)  # normalizing values, better results/visibility/peak values
+        imageDistance = cv2.normalize(imageDistance, None, 0, 255,
+                                      cv2.NORM_MINMAX)  # normalizing values, better results/visibility/peak values
+
+        # cv2.normalize(imageDistance, imageDistance, 0, 255, cv2.NORM_MINMAX)
+
+        # ret, thresh1 = cv2.threshold(imageDistance, 0, 255, cv2.THRESH_TOZERO)
 
         self.imageArray = imageDistance
+
+        # print(imageDistance)
+
+        # a = np.arange(127 * 127).reshape(127, 127)
+
         self.updateImage()
+
+    def count(self):
+        """
+        Last few operations to count the number of coins.
+        """
+
+        ret, thresh1 = cv2.threshold(self.imageArray, 160, 255, cv2.THRESH_BINARY)
+
+        s = (3, 3)
+        kernel1 = np.ones(s)
+        dilated = cv2.dilate(thresh1, kernel1)
+
+        # dilated = cv2.cvtColor(dilated, cv2.COLOR_RGB2GRAY)
+
+        # dilated = cv2.cvtColor(dilated, cv2.CV_32S)
+
+        sure_fg = np.uint8(dilated)
+
+        num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(sure_fg, connectivity=8,
+                                                                                ltype=cv2.CV_32S)
+
+        # ret, labels = cv2.connectedComponents(sure_fg)
+        # vals, counts = np.unique(np.hstack([labels[0], labels[-1], labels[:, 0], labels[:, -1]]),
+        #                          return_counts=True)
+
+        cv2.imshow("Counting Image", dilated)
+
+        print(num_labels - 1)
+
+        messagebox.showinfo('Counter: ', num_labels - 1)
+
+        # (numLabels, labels, stats, centroids) = output
 
     def updateImage(self):
         """
         Resizes and updates the currently displayed image with the given image array.
         """
-        imageArray = self.imageArray
 
-        # self.imageArray = imageArray
-        resized = cv2.resize(imageArray, self.newSize)  # takes image array and resizes it, returns new image array
+        resized = cv2.resize(self.imageArray, self.newSize)  # takes image array and resizes it, returns new image array
         imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
         self.image = imgtk
@@ -255,13 +300,15 @@ class ImagePlot:
 
     def __init__(self):
         # self.image = image
-        print("placeholder")
+
+        print("not yet implemented")
 
     def showPlot(self, imageArray):
         """
         Opens a new window with plots and histograms.
         *Currently not working
         """
+
         self.imageArray = imageArray
 
         # Toplevel object which will
@@ -358,34 +405,41 @@ def callbackFileSelection(event):
 
 
 def openPlot():
-    grayImagePlot.showPlot(grayImage.getImageArray())
+    print("not yet implemented")
 
 
 def countCoins():
-    distanceImageArray = distanceImage.getImageArray()
-    cv2.imshow("hello sir", distanceImageArray)
-    cv2.waitKey(0)  # waits until a key is pressed
+    # distanceImageArray = distanceImage.getImageArray()
+    # localMaxArray = distanceImage.getImageArray()
+    # transform = cv2.distanceTransform(distanceImageArray, cv2.DIST_C, 3)
+    #
+    # # cv2.imshow("test", transform)
+    #
+    # # cv2.imshow("hello sir", distanceImageArray)
+    # # cv2.waitKey(0)  # waits until a key is pressed
+    #
+    # print(distanceImageArray)
+    #
+    # highestValue = 255
+    # counter = 0
+    #
+    # distanceImageArray = distanceImageArray.flatten()
+    #
+    # for x in distanceImageArray:
+    #     if x > highestValue:
+    #         highestValue = x
+    #
+    # print(highestValue)
+    #
+    # for x in distanceImageArray:
+    #     if x > highestValue - 40:
+    #         counter += 1
+    #
+    # print(counter)
+    #
+    # # print(ret)
 
-    print(distanceImageArray)
-
-    highestValue = 255
-    counter = 0
-
-    distanceImageArray = distanceImageArray.flatten()
-
-    for x in distanceImageArray:
-        if x > highestValue:
-            highestValue = x
-
-    print(highestValue)
-
-    for x in distanceImageArray:
-        if x > highestValue - 40:
-            counter += 1
-
-    print(counter)
-
-    # print(ret)
+    distanceImage.count()
 
 
 if __name__ == '__main__':
@@ -447,8 +501,6 @@ if __name__ == '__main__':
     distanceImage.dilate()
     distanceImage.distance()
 
-    grayImagePlot = ImagePlot()
-
     # initialization of GUI objects
 
     lbFileSelection = tk.Listbox(master, width=30)  # creating a listbox
@@ -481,7 +533,7 @@ if __name__ == '__main__':
     # dilateSlider
     dilateIterationSlider = tk.Scale(master, from_=0, to=20, orient=tk.HORIZONTAL,
                                      label="Dilate Iterations:", command=updateParameter)
-    dilateIterationSlider.pack(side="top", fill=tk.X,padx=10, pady=2)
+    dilateIterationSlider.pack(side="top", fill=tk.X, padx=10, pady=2)
     dilateIterationSlider.set(1)  # preset value
 
     # distance operation type combobox
