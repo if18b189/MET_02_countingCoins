@@ -242,16 +242,17 @@ class ImageClass:
 
         # dilated = cv2.cvtColor(dilated, cv2.CV_32S)
 
-        sure_fg = np.uint8(dilated)
+        sure_fg = np.uint8(dilated) # converting to uint8/CV_8U
 
         num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(sure_fg, connectivity=8,
-                                                                                ltype=cv2.CV_32S)
+
+                                                                                ltype=cv2.CV_32S) # counting
 
         # ret, labels = cv2.connectedComponents(sure_fg)
         # vals, counts = np.unique(np.hstack([labels[0], labels[-1], labels[:, 0], labels[:, -1]]),
         #                          return_counts=True)
 
-        cv2.imshow("Counting Image", dilated)
+        cv2.imshow("Counting Image", dilated)   # showing image
 
         print(num_labels - 1)
 
