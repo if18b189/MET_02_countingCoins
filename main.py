@@ -410,36 +410,6 @@ def openPlot():
 
 
 def countCoins():
-    # distanceImageArray = distanceImage.getImageArray()
-    # localMaxArray = distanceImage.getImageArray()
-    # transform = cv2.distanceTransform(distanceImageArray, cv2.DIST_C, 3)
-    #
-    # # cv2.imshow("test", transform)
-    #
-    # # cv2.imshow("hello sir", distanceImageArray)
-    # # cv2.waitKey(0)  # waits until a key is pressed
-    #
-    # print(distanceImageArray)
-    #
-    # highestValue = 255
-    # counter = 0
-    #
-    # distanceImageArray = distanceImageArray.flatten()
-    #
-    # for x in distanceImageArray:
-    #     if x > highestValue:
-    #         highestValue = x
-    #
-    # print(highestValue)
-    #
-    # for x in distanceImageArray:
-    #     if x > highestValue - 40:
-    #         counter += 1
-    #
-    # print(counter)
-    #
-    # # print(ret)
-
     distanceImage.count()
 
 
