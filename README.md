@@ -6,7 +6,7 @@ Basics of morphological operations. Counting objects, application of distance tr
 
 ## Setup & Installation
 
-Tested & working with python version `3.8` lower versions may or may not work.
+Tested & working with python version `3.8.8` other versions may or may not work.
 ```
 git clone https://github.com/if18b189/MET_02_countingCoins.git
 cd MET_02_countingCoins
