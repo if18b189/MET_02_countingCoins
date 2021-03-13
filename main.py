@@ -15,10 +15,8 @@ useful links and sources:
 from tkinter import ttk, messagebox
 
 import cv2
-import matplotlib
 import numpy as np
 import glob
-import pathlib
 import tkinter as tk
 from PIL import Image, ImageTk
 import os
